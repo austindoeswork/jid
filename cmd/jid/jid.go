@@ -16,12 +16,14 @@ func main() {
 	var qm bool
 	var help bool
 	var version bool
-	qs := "."
+	var sc string
+	qs := ""
 
 	flag.BoolVar(&qm, "q", false, "Output query mode")
 	flag.BoolVar(&help, "h", false, "print a help")
 	flag.BoolVar(&help, "help", false, "print a help")
 	flag.BoolVar(&version, "version", false, "print the version and exit")
+	flag.StringVar(&sc, "delim", ".", "delimination char")
 	flag.Parse()
 
 	if help {
@@ -38,7 +40,7 @@ func main() {
 		qs = args[0]
 	}
 
-	e, err := jid.NewEngine(content, qs)
+	e, err := jid.NewEngine(content, qs, sc)
 
 	if err != nil {
 		fmt.Println(err)

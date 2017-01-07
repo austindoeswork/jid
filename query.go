@@ -25,20 +25,31 @@ type QueryInterface interface {
 }
 
 type Query struct {
-	query    *[]rune
-	complete *[]rune
+	query     *[]rune
+	complete  *[]rune
+	splitChar string
 }
 
-func NewQuery(query []rune) *Query {
+func NewQuery(query []rune, sc string) *Query {
+	if sc == "" {
+		sc = "."
+	}
+	if len(sc) > 1 {
+		sc = string(sc[0])
+	}
+	if len(query) == 0 {
+		query = []rune(sc)
+	}
 	q := &Query{
-		query:    &[]rune{},
-		complete: &[]rune{},
+		query:     &[]rune{},
+		complete:  &[]rune{},
+		splitChar: sc,
 	}
 	_ = q.Set(query)
 	return q
 }
-func NewQueryWithString(query string) *Query {
-	return NewQuery([]rune(query))
+func NewQueryWithString(query string, sc string) *Query {
+	return NewQuery([]rune(query), sc)
 }
 
 func (q *Query) Get() []rune {
@@ -46,9 +57,9 @@ func (q *Query) Get() []rune {
 }
 
 func (q *Query) Set(query []rune) []rune {
-	if validate(query) {
-		q.query = &query
-	}
+	// if validate(query, q.splitChar) {
+	q.query = &query
+	// }
 	return q.Get()
 }
 
@@ -100,7 +111,7 @@ func (q *Query) GetKeywords() [][]rune {
 		return [][]rune{}
 	}
 
-	splitQuery := strings.Split(query, ".")
+	splitQuery := strings.Split(query, q.splitChar)
 	lastIdx := len(splitQuery) - 1
 
 	keywords := [][]rune{}
@@ -142,7 +153,7 @@ func (q *Query) PopKeyword() ([]rune, []rune) {
 	var lastBracketIdx int
 	qq := q.Get()
 	for i, e := range qq {
-		if e == '.' {
+		if string(e) == q.splitChar {
 			lastSepIdx = i
 		} else if e == '[' {
 			lastBracketIdx = i
@@ -186,24 +197,26 @@ func (q *Query) StringPopKeyword() (string, []rune) {
 	return string(keyword), query
 }
 
-func validate(r []rune) bool {
+func validate(r []rune, sc string) bool {
 	s := string(r)
 	if s == "" {
 		return true
 	}
-	if regexp.MustCompile(`^[^.]`).MatchString(s) {
+	scc := strings.Replace(sc, ".", `\.`, 0)
+
+	// if regexp.MustCompile(`^[^.]`).MatchString(s) {
+	// return false
+	// }
+	if regexp.MustCompile(scc + `{2,}`).MatchString(s) {
 		return false
 	}
-	if regexp.MustCompile(`\.{2,}`).MatchString(s) {
-		return false
-	}
-	if regexp.MustCompile(`\[[0-9]*\][^\.\[]`).MatchString(s) {
+	if regexp.MustCompile(`\[[0-9]*\][^` + scc + `\[]`).MatchString(s) {
 		return false
 	}
 	if regexp.MustCompile(`\[{2,}|\]{2,}`).MatchString(s) {
 		return false
 	}
-	if regexp.MustCompile(`.\.\[`).MatchString(s) {
+	if regexp.MustCompile(`.` + scc + `\[`).MatchString(s) {
 		return false
 	}
 	return true

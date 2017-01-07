@@ -43,7 +43,7 @@ func TestGet(t *testing.T) {
 
 	r := bytes.NewBufferString("{\"name\":\"go\"}")
 	jm, _ := NewJsonManager(r)
-	q := NewQueryWithString(".name")
+	q := NewQueryWithString(".name", ".")
 	result, suggest, candidateKeys, err := jm.Get(q, false)
 
 	assert.Nil(err)
@@ -57,7 +57,7 @@ func TestGet(t *testing.T) {
 	jm, _ = NewJsonManager(r)
 
 	// case 2
-	q = NewQueryWithString(".abcde")
+	q = NewQueryWithString(".abcde", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	//assert.Equal(`"2AA2"`, result)
@@ -65,32 +65,32 @@ func TestGet(t *testing.T) {
 	assert.Equal([]string{``, "abcde"}, suggest)
 
 	// case 3
-	q = NewQueryWithString(".abcde_fgh")
+	q = NewQueryWithString(".abcde_fgh", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	assert.Equal(`{"aaa":[123,"cccc",[1,2]],"c":"JJJJ"}`, result)
 	assert.Equal([]string{``, ``}, suggest)
 
 	// case 4
-	q = NewQueryWithString(".abcde_fgh.aaa[2]")
+	q = NewQueryWithString(".abcde_fgh.aaa[2]", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Equal(`[1,2]`, result)
 
 	// case 5
-	q = NewQueryWithString(".abcde_fgh.aaa[3]")
+	q = NewQueryWithString(".abcde_fgh.aaa[3]", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	assert.Equal(`null`, result)
 
 	// case 6
-	q = NewQueryWithString(".abcde_fgh.aa")
+	q = NewQueryWithString(".abcde_fgh.aa", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	assert.Equal(`{"aaa":[123,"cccc",[1,2]],"c":"JJJJ"}`, result)
 	assert.Equal([]string{`a`, `aaa`}, suggest)
 
 	// case 7
-	q = NewQueryWithString(".abcde_fgh.ac")
+	q = NewQueryWithString(".abcde_fgh.ac", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	assert.Equal(`null`, result)
@@ -102,7 +102,7 @@ func TestGet(t *testing.T) {
 	jm, _ = NewJsonManager(r)
 
 	// case 2
-	q = NewQueryWithString(".def")
+	q = NewQueryWithString(".def", ".")
 	result, suggest, candidateKeys, err = jm.Get(q, false)
 	assert.Nil(err)
 	assert.Equal(`{"aaa":"bbb"}`, result)
@@ -114,7 +114,7 @@ func TestGetPretty(t *testing.T) {
 
 	r := bytes.NewBufferString("{\"name\":\"go\"}")
 	jm, _ := NewJsonManager(r)
-	q := NewQueryWithString(".name")
+	q := NewQueryWithString(".name", ".")
 	result, _, _, err := jm.GetPretty(q, true)
 
 	assert.Nil(err)
@@ -196,7 +196,7 @@ func TestGetFilteredData(t *testing.T) {
 	jm, _ := NewJsonManager(r)
 
 	// case 1
-	q := NewQueryWithString(".abcde")
+	q := NewQueryWithString(".abcde", ".")
 	result, s, c, err := jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ := result.Encode()
@@ -206,7 +206,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{"abcde", "abcde_fgh"}, c)
 
 	// case 2
-	q = NewQueryWithString(".abcde_fgh")
+	q = NewQueryWithString(".abcde_fgh", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -215,7 +215,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{}, c)
 
 	// case 3
-	q = NewQueryWithString(".abcde_fgh.aaa[2]")
+	q = NewQueryWithString(".abcde_fgh.aaa[2]", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -223,7 +223,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{`[`, `[`}, s)
 
 	// case 4
-	q = NewQueryWithString(".abcde_fgh.aaa[3]")
+	q = NewQueryWithString(".abcde_fgh.aaa[3]", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -231,7 +231,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{``, ``}, s)
 
 	// case 5
-	q = NewQueryWithString(".abcde_fgh.aaa")
+	q = NewQueryWithString(".abcde_fgh.aaa", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -239,7 +239,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{`[`, `[`}, s)
 
 	// case 6
-	q = NewQueryWithString(".abcde_fgh.aa")
+	q = NewQueryWithString(".abcde_fgh.aa", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -247,7 +247,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{`a`, `aaa`}, s)
 
 	// case 7
-	q = NewQueryWithString(".abcde_fgh.aaa[")
+	q = NewQueryWithString(".abcde_fgh.aaa[", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -255,7 +255,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{``, `[`}, s)
 
 	// case 8
-	q = NewQueryWithString(".")
+	q = NewQueryWithString(".", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -263,7 +263,7 @@ func TestGetFilteredData(t *testing.T) {
 	assert.Equal([]string{``, ``}, s)
 
 	// case 9
-	q = NewQueryWithString(".cc.")
+	q = NewQueryWithString(".cc.", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -276,7 +276,7 @@ func TestGetFilteredData(t *testing.T) {
 	r = bytes.NewBufferString(data)
 	jm, _ = NewJsonManager(r)
 
-	q = NewQueryWithString(".arraytest[0]")
+	q = NewQueryWithString(".arraytest[0]", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -289,7 +289,7 @@ func TestGetFilteredData(t *testing.T) {
 	r = bytes.NewBufferString(data)
 	jm, _ = NewJsonManager(r)
 
-	q = NewQueryWithString(".bb")
+	q = NewQueryWithString(".bb", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -302,7 +302,7 @@ func TestGetFilteredData(t *testing.T) {
 	r = bytes.NewBufferString(data)
 	jm, _ = NewJsonManager(r)
 
-	q = NewQueryWithString("")
+	q = NewQueryWithString("", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -315,7 +315,7 @@ func TestGetFilteredData(t *testing.T) {
 	r = bytes.NewBufferString(data)
 	jm, _ = NewJsonManager(r)
 
-	q = NewQueryWithString(".Private")
+	q = NewQueryWithString(".Private", ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	d, _ = result.Encode()
 	assert.Equal([]string{``, `Private`}, s)
@@ -330,7 +330,7 @@ func TestGetFilteredDataWithMatchQuery(t *testing.T) {
 	r := bytes.NewBufferString(data)
 	jm, _ := NewJsonManager(r)
 
-	q := NewQueryWithString(`.name`)
+	q := NewQueryWithString(`.name`, ".")
 	result, s, c, err := jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ := result.Encode()
@@ -338,7 +338,7 @@ func TestGetFilteredDataWithMatchQuery(t *testing.T) {
 	assert.Equal([]string{"[", "["}, s)
 	assert.Equal([]string{}, c)
 
-	q = NewQueryWithString(`.naming`)
+	q = NewQueryWithString(`.naming`, ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -346,7 +346,7 @@ func TestGetFilteredDataWithMatchQuery(t *testing.T) {
 	assert.Equal([]string{"", ""}, s)
 	assert.Equal([]string{}, c)
 
-	q = NewQueryWithString(`.naming.`)
+	q = NewQueryWithString(`.naming.`, ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -354,7 +354,7 @@ func TestGetFilteredDataWithMatchQuery(t *testing.T) {
 	assert.Equal([]string{"account", "account"}, s)
 	assert.Equal([]string{"account"}, c)
 
-	q = NewQueryWithString(`.test`)
+	q = NewQueryWithString(`.test`, ".")
 	result, s, c, err = jm.GetFilteredData(q, false)
 	assert.Nil(err)
 	d, _ = result.Encode()
@@ -369,24 +369,24 @@ func TestGetCandidateKeys(t *testing.T) {
 	r := bytes.NewBufferString(data)
 	jm, _ := NewJsonManager(r)
 
-	q := NewQueryWithString(`.n`)
+	q := NewQueryWithString(`.n`, ".")
 
 	keys := jm.GetCandidateKeys(q)
 	assert.Equal([]string{"name", "naming"}, keys)
 
-	q = NewQueryWithString(`.`)
+	q = NewQueryWithString(`.`, ".")
 	keys = jm.GetCandidateKeys(q)
 	assert.Equal([]string{"name", "naming", "test", "testing"}, keys)
 
-	q = NewQueryWithString(`.test`)
+	q = NewQueryWithString(`.test`, ".")
 	keys = jm.GetCandidateKeys(q)
 	assert.Equal([]string{"test", "testing"}, keys)
 
-	q = NewQueryWithString(`.testi`)
+	q = NewQueryWithString(`.testi`, ".")
 	keys = jm.GetCandidateKeys(q)
 	assert.Equal([]string{"testing"}, keys)
 
-	q = NewQueryWithString(`.testia`)
+	q = NewQueryWithString(`.testia`, ".")
 	keys = jm.GetCandidateKeys(q)
 	assert.Equal([]string{}, keys)
 }

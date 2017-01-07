@@ -47,7 +47,7 @@ func (e *EngineMock) Run() jid.EngineResultInterface {
 	return &EngineResultMock{err: e.err}
 }
 func (e *EngineMock) GetQuery() jid.QueryInterface {
-	return jid.NewQuery([]rune(""))
+	return jid.NewQuery([]rune(""), ".")
 }
 
 type EngineResultMock struct{ err error }

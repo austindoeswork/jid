@@ -9,7 +9,7 @@ import (
 
 const (
 	DefaultY     int    = 1
-	FilterPrompt string = "[Filter]> "
+	FilterPrompt string = "[Fuck]> "
 )
 
 type EngineInterface interface {
@@ -35,9 +35,16 @@ type Engine struct {
 	contentOffset int
 	queryConfirm  bool
 	cursorOffsetX int
+	defaultQuery  string
 }
 
-func NewEngine(s io.Reader, qs string) (EngineInterface, error) {
+func NewEngine(s io.Reader, qs string, sc string) (EngineInterface, error) {
+	if sc == "" {
+		sc = "."
+	}
+	if len(sc) > 1 {
+		sc = string(sc[0])
+	}
 	j, err := NewJsonManager(s)
 	if err != nil {
 		return nil, err
@@ -45,7 +52,7 @@ func NewEngine(s io.Reader, qs string) (EngineInterface, error) {
 	e := &Engine{
 		manager:       j,
 		term:          NewTerminal(FilterPrompt, DefaultY),
-		query:         NewQuery([]rune(qs)),
+		query:         NewQuery([]rune(qs), sc),
 		complete:      []string{"", ""},
 		keymode:       false,
 		candidates:    []string{},
@@ -54,6 +61,7 @@ func NewEngine(s io.Reader, qs string) (EngineInterface, error) {
 		contentOffset: 0,
 		queryConfirm:  false,
 		cursorOffsetX: 0,
+		defaultQuery:  sc,
 	}
 	e.cursorOffsetX = len(e.query.Get())
 	return e, nil
@@ -93,7 +101,7 @@ func (e *Engine) Run() EngineResultInterface {
 	for {
 
 		if e.query.StringGet() == "" {
-			e.query.StringSet(".")
+			e.query.StringSet(e.defaultQuery)
 			e.cursorOffsetX = len(e.query.StringGet())
 		}
 
@@ -192,7 +200,7 @@ func (e *Engine) setCandidateData() {
 
 func (e *Engine) confirmCandidate() {
 	_, _ = e.query.PopKeyword()
-	_ = e.query.StringAdd(".")
+	_ = e.query.StringAdd(e.defaultQuery)
 	q := e.query.StringAdd(e.candidates[e.candidateidx])
 	e.cursorOffsetX = len(q)
 	e.queryConfirm = true
@@ -223,7 +231,7 @@ func (e *Engine) toggleKeymode() {
 }
 func (e *Engine) deleteWordBackward() {
 	if k, _ := e.query.StringPopKeyword(); k != "" && !strings.Contains(k, "[") {
-		_ = e.query.StringAdd(".")
+		_ = e.query.StringAdd(e.defaultQuery)
 	}
 	e.cursorOffsetX = len(e.query.Get())
 }
@@ -231,10 +239,10 @@ func (e *Engine) tabAction() {
 	if !e.candidatemode {
 		e.candidatemode = true
 		if e.query.StringGet() == "" {
-			_ = e.query.StringAdd(".")
+			_ = e.query.StringAdd(e.defaultQuery)
 		} else if e.complete[0] != e.complete[1] && e.complete[0] != "" {
 			if k, _ := e.query.StringPopKeyword(); !strings.Contains(k, "[") {
-				_ = e.query.StringAdd(".")
+				_ = e.query.StringAdd(e.defaultQuery)
 			}
 			_ = e.query.StringAdd(e.complete[1])
 		} else {
